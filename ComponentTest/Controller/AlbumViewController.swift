@@ -21,6 +21,8 @@ class AlbumViewController: UIViewController {
     var collectionView:UICollectionView!
     var collectionLayout:UICollectionViewFlowLayout!
     var collectionCellId:String = "CollectionCellId"
+    
+    var oldOrientation:UIDeviceOrientation = .unknown
     var isChoosing: Bool = false{
         didSet{
             if isChoosing != oldValue{
@@ -38,8 +40,6 @@ class AlbumViewController: UIViewController {
             collectionView.reloadData()
         }
     }
-    
-//    var thumbnails:[UIImage]?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -145,21 +145,20 @@ extension AlbumViewController: UICollectionViewDataSource, UICollectionViewDeleg
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: collectionCellId, for: indexPath) as! GSCollectionViewCell
-        
         cell.contentMode = .scaleAspectFill
         cell.clipsToBounds = true
+        cell.tag = indexPath.row
         cell.delegate = self
         cell.isChoosing = self.isChoosing
-        
-        if chosenItems.contains(indexPath.row){
-            cell.isChosen = true
-        }else{
-            cell.isChosen = false
-        }
         
         if let assets = assets{
             let asset = assets[indexPath.row]
             cell.image = PhotoUtils.shared.getThumbnail(asset: asset, targetSize: CGSize(width: cellLength, height: cellLength))
+            if chosenItems.contains(indexPath.row){
+                cell.isChosen = true
+            }else{
+                cell.isChosen = false
+            }
         }
         
         return cell
@@ -177,12 +176,16 @@ extension AlbumViewController: UICollectionViewDataSource, UICollectionViewDeleg
 }
 
 extension AlbumViewController: GSCollectionViewCellDelegate{
-    func beginLongPress() {
+    func beginLongPress(_ sender: UILongPressGestureRecognizer) {
         
     }
     
-    func endLongPress() {
+    func endLongPress(_ sender: UILongPressGestureRecognizer) {
+        let cell = sender.view
         self.isChoosing = true
+        if let cell = cell{
+            chosenItems.insert(cell.tag)
+        }
     }
 }
 
@@ -217,12 +220,10 @@ extension AlbumViewController{
             make.width.equalToSuperview()
             make.bottom.equalTo(-self.view.safeAreaInsets.bottom)
         }
-        
-        collectionView.reloadData()
     }
     
     private func installUI(){
-        self.view.backgroundColor = .systemBlue
+        self.view.backgroundColor = UIColor.white
         
         navigationBar = UIView()
         navigationBar.backgroundColor = UIColor.white
@@ -302,7 +303,17 @@ extension AlbumViewController{
         NotificationCenter.default.addObserver(self, selector: #selector(orientationChanged), name: UIDevice.orientationDidChangeNotification, object: nil)
     }
     
-    @objc private func orientationChanged(){
-        collectionView.reloadData()
+    @objc private func orientationChanged(_ sender: Notification){
+        let orientation = UIDevice.current.orientation
+        
+        if oldOrientation != orientation{
+            switch orientation {
+            case .portrait, .landscapeLeft, .landscapeRight:
+                collectionView.reloadData()
+                oldOrientation = orientation
+            default:
+                break
+            }
+        }
     }
 }

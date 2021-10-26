@@ -11,21 +11,26 @@ import SnapKit
 class GSCollectionViewCell: UICollectionViewCell {
     private var imageView:UIImageView!
     private var chooseView:ChooseStateView!
+    private var pressGes:UILongPressGestureRecognizer!
     
     var delegate:GSCollectionViewCellDelegate?
     var isChosen:Bool = false{
         didSet{
-            chooseView.isChosen = isChosen
+            if isChosen != oldValue{
+                chooseView.isChosen = isChosen
+            }
         }
     }
     
     var isChoosing:Bool = false{
         didSet{
             if isChoosing{
+                pressGes.isEnabled = false
                 UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
                     self.chooseView.alpha = 1
                 }, completion: nil)
             }else{
+                pressGes.isEnabled = true
                 UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: {
                     self.chooseView.alpha = 0
                 }, completion: nil)
@@ -71,14 +76,14 @@ class GSCollectionViewCell: UICollectionViewCell {
             make.edges.equalToSuperview()
         }
         
-        let pressGes = UILongPressGestureRecognizer(target: self, action: #selector(turnOnChooseModel))
+        pressGes = UILongPressGestureRecognizer(target: self, action: #selector(turnOnChooseModel))
         pressGes.minimumPressDuration = 1
         self.addGestureRecognizer(pressGes)
     }
     
     @objc private func turnOnChooseModel(_ sender: UILongPressGestureRecognizer){
         if sender.state == .ended{
-            delegate?.endLongPress()
+            delegate?.endLongPress(sender)
         }
     }
     
@@ -92,6 +97,6 @@ class GSCollectionViewCell: UICollectionViewCell {
 }
 
 protocol GSCollectionViewCellDelegate:NSObjectProtocol {
-    func beginLongPress()
-    func endLongPress()
+    func beginLongPress(_ sender: UILongPressGestureRecognizer)
+    func endLongPress(_ sender: UILongPressGestureRecognizer)
 }

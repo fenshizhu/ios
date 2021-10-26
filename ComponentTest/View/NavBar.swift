@@ -59,7 +59,7 @@ class NavBar: UIView {
         didSet{
             if isOpen{
                 UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
-                    self.imgView.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi))
+                    self.imgView.transform = CGAffineTransform(rotationAngle: CGFloat(-0.99 * Double.pi))
                 } completion: { finished in
                     if finished{
                         self.delegate?.openDropDownList()
@@ -70,7 +70,6 @@ class NavBar: UIView {
                     self.imgView.transform = CGAffineTransform.identity
                 } completion: { finished in
                     if finished{
-//                        self.imgView.transform = CGAffineTransform.identity
                         self.delegate?.closeDropDownList()
                     }
                 }
@@ -97,12 +96,12 @@ class NavBar: UIView {
         headingLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(makeImgRotate)))
         
         imgView = UIImageView(image: UIImage(named: "album_dropdown"))
-        imgView.contentMode = .scaleAspectFit
+        imgView.contentMode = .center
         self.addSubview(imgView)
         imgView.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
-            make.left.equalTo(headingLabel.snp.right).offset(6 * ratio)
-            make.width.equalTo(22 * ratio)
+            make.left.equalTo(headingLabel.snp.right)
+            make.width.equalTo(34 * ratio)
             make.height.equalToSuperview()
         }
         imgView.isUserInteractionEnabled = true
